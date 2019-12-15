@@ -1,0 +1,84 @@
+mount -r -o loop /efi/iso/elementaryos-5.1-stable.20191202.iso /mnt
+cd /tmp
+mkdir file1 file2 file3
+cd /tmp/file1
+cat /mnt/casper/initrd.lz | bsdcpio -id
+cd ../file2
+dd if=/mnt/casper/initrd.lz bs=512 skip=62 | bsdcpio -id
+cd ../file3
+dd if=/mnt/casper/initrd.lz bs=512 skip=5848 | bsdcpio -id
+vi scripts/casper
+
+cd /tmp/file1
+find . | bsdcpio --quiet --dereference -o -H newc > /tmp/f1
+cd /tmp/file2
+find . | bsdcpio --quiet --dereference -o -H newc > /tmp/f2
+cd /tmp/file3
+find . | bsdcpio --quiet --dereference -o -H newc | gzip -9c > /tmp/f3
+cd /tmp
+cat f1 f2 f3 > initrd.gz
+mv initrd.gz /efi/iso/modified_elementaryos51_initrd.gz
+/efi/grub/iso.cfg
+
+
+
+Entries for grub.cfg (or /efi/grub/iso.cfg)
+
+# Elementary OS
+for isofile in ${efidev}${isopath}/elementaryos-*.iso; do
+  if [ ! -e "$isofile" ]; then break; fi
+  regexp \
+    --set 1:isoname \
+    --set 2:version \
+    --set 3:variant \
+    "^\\${efidev}${isopath}/(elementaryos-([^-]+)-(.+)\.iso)\$" "${isofile}"
+  menuentry "Elementary OS ${version} ${variant}" "${isofile}" "${isoname}" --class elementary {
+    set isofile=$2
+    set isoname=$3
+    echo "Using ${isoname}..."
+    loopback loop ${isofile}
+    linux (loop)/casper/vmlinuz boot=casper live-media=/isodevice/${isopath}/${isoname} live-media-offset=0 quiet splash
+    initrd ${efidev}${isopath}/modified_elementaryos51_initrd.gz
+#    linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=${isopath}/${isoname} quiet splash
+#    initrd (loop)/casper/initrd.lz
+  }
+done
+
+
+
+scripts/casper in modified_elementaryos51_initrd.gz:
+mountroot() {
+    exec 6>&1
+    exec 7>&2
+    exec > casper.log
+    exec 2>&1
+    tail -f casper.log >&7 &
+    tailpid="$!"
+
+    parse_cmdline
+
+    [ "$quiet" != "y" ] && log_begin_msg "Running /scripts/casper-premount"
+    run_scripts /scripts/casper-premount
+    [ "$quiet" != "y" ] && log_end_msg
+
+    mkdir /isodevice
+    mount -r /dev/sda1 /isodevice
+
+    if [ ! -z "${NETBOOT}" ]; then
+        if do_netmount ; then
+            livefs_root="${mountpoint}"
+        else
+            panic "Unable to find a live file system on the network"
+        fi
+    else
+        # Scan local devices for the image
+        i=0
+        while [ "$i" -lt 60 ]; do
+            livefs_root=$(find_livefs $i)
+            if [ "${livefs_root}" ]; then
+                break
+            fi
+            sleep 1
+            i="$(($i + 1))"
+        done
+    fi
