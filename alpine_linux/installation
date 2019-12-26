@@ -1,0 +1,35 @@
+Media: alpine-virt-3.11.2-x86_64.iso
+
+setup-alpine
+- keyboard layout: us
+- variant: us
+- ip address for eth0: dhcp
+- manual network configuration: no
+- timezone: Singapore
+- proxy: none
+- ntp client: none
+- mirror: download.edu.nus.sg
+- ssh server: none
+- disk: sda
+- how to use disk sda: sys
+- erase sda: y
+reboot
+# enable http://download.edu.nus.sg/mirror/alpine/v3.11/community in /etc/apk/repositories
+apk update
+apk add virtualbox-guest-additions virtualbox-guest-modules-virt
+setup-xorg-base xfce4 xfce4-terminal lightdm-gtk-greeter xfce-polkit xfce4-screensaver consolekit2 dbus-x11 sudo
+apk add xf86-input-vmmouse xf86-input-keyboard
+adduser -g 'User' user
+echo 'user ALL=(ALL) ALL'>/etc/sudoers.d/user
+rc-service dbus start
+rc-update add dbus
+rc-update add lightdm
+rc-service lightdm start
+
+
+Reference:
+https://wiki.alpinelinux.org/wiki/Install_to_disk
+https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management
+https://wiki.alpinelinux.org/wiki/VirtualBox_guest_additions
+https://wiki.alpinelinux.org/wiki/VirtualBox_shared_folders
+https://wiki.alpinelinux.org/wiki/XFCE_Setup
