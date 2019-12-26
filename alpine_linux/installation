@@ -16,7 +16,7 @@ setup-alpine
 reboot
 # enable http://download.edu.nus.sg/mirror/alpine/v3.11/community in /etc/apk/repositories
 apk update
-apk add virtualbox-guest-additions virtualbox-guest-modules-virt
+apk add virtualbox-guest-additions virtualbox-guest-modules-virt virtualbox-guest-additions-x11
 setup-xorg-base xfce4 xfce4-terminal lightdm-gtk-greeter xfce-polkit xfce4-screensaver consolekit2 dbus-x11 sudo
 apk add xf86-input-vmmouse xf86-input-keyboard
 adduser -g 'User' user
@@ -25,6 +25,12 @@ rc-service dbus start
 rc-update add dbus
 rc-update add lightdm
 rc-service lightdm start
+reboot
+# enable autologin-user and autologin-user-timeout in /etc/lightdm/lightdm.conf
+rc-update add virtualbox-guest-additions
+mkdir /mnt/outside
+# add "vbox_shared /mnt/outside vboxsf defaults 0 0" to /etc/fstab
+reboot
 
 
 Reference:

@@ -1,2 +1,5 @@
 apk upgrade
 apk search -v 'virtualbox*'
+apk info -L virtualbox-guest-additions
+rc-service -l
+rc-update show
