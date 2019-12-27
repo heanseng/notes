@@ -31,6 +31,7 @@ rc-update add virtualbox-guest-additions
 mkdir /mnt/outside
 # add "vbox_shared /mnt/outside vboxsf defaults 0 0" to /etc/fstab
 reboot
+apk add chromium openssh-client
 
 
 Reference:
