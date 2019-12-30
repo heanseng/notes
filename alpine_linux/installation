@@ -30,8 +30,10 @@ reboot
 rc-update add virtualbox-guest-additions
 mkdir /mnt/outside
 # add "vbox_shared /mnt/outside vboxsf defaults 0 0" to /etc/fstab
-reboot
 apk add chromium openssh-client
+mkdir /etc/udhcpc
+# add "search=xilinx.com" to /etc/udhcpc/udhcpc.conf
+reboot
 
 
 Reference:
@@ -40,3 +42,4 @@ https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management
 https://wiki.alpinelinux.org/wiki/VirtualBox_guest_additions
 https://wiki.alpinelinux.org/wiki/VirtualBox_shared_folders
 https://wiki.alpinelinux.org/wiki/XFCE_Setup
+https://wiki.alpinelinux.org/wiki/Udhcpc
